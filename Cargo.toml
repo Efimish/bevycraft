@@ -1,0 +1,15 @@
+[package]
+name = "bevycraft"
+version = "0.0.1"
+edition = "2021"
+authors = ["Efima"]
+description = "Minecraft clone using bevy engine"
+keywords = ["bevy", "minecraft"]
+categories = ["games"]
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = "0.13.2"
+bevy-inspector-egui = "0.23.4"
