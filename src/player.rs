@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use bevy::input::mouse::MouseMotion;
+use bevy::window::{PrimaryWindow, CursorGrabMode};
+use crate::keybinds::KeyBindsResource;
 
 pub struct PlayerPlugin;
 
@@ -34,14 +36,20 @@ pub fn spawn_player(
 ) {
     commands.spawn((
         Player,
-        Transform::from_xyz(0.0, 0.0, 5.0),
+        Transform::from_xyz(0.0, 10.0, 0.0),
         GlobalTransform::IDENTITY,
         Name::new("Player")
     ))
     .with_children(|parent| {
         parent.spawn((
             PlayerCamera,
-            Camera3dBundle::default(),
+            Camera3dBundle {
+                camera: Camera {
+                    clear_color: ClearColorConfig::Custom(Color::rgb_u8(120, 167, 255)),
+                    ..default()
+                },
+                ..default()
+            },
             Name::new("Player camera")
         ));
     });
@@ -58,11 +66,11 @@ pub fn despawn_player(
     }
 }
 
-// WASD, Space, Shift
 fn player_movement(
     mut player_query: Query<&mut Transform, With<Player>>,
     camera_query: Query<&Transform, (With<PlayerCamera>, Without<Player>)>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    keybinds: Res<KeyBindsResource>,
     time: Res<Time>
 ) {
     let player_speed: f32 = 10.0;
@@ -77,22 +85,22 @@ fn player_movement(
         let forward = Vec3::new(-local_z.x, 0.0, -local_z.z);
         let right = Vec3::new(local_z.z, 0.0, -local_z.x);
 
-        if keyboard_input.pressed(KeyCode::KeyW) {
+        if keyboard_input.pressed(keybinds.move_forward) {
             direction += forward;
         }
-        if keyboard_input.pressed(KeyCode::KeyA) {
+        if keyboard_input.pressed(keybinds.move_left) {
             direction -= right;
         }
-        if keyboard_input.pressed(KeyCode::KeyS) {
+        if keyboard_input.pressed(keybinds.move_backward) {
             direction -= forward;
         }
-        if keyboard_input.pressed(KeyCode::KeyD) {
+        if keyboard_input.pressed(keybinds.move_right) {
             direction += right;
         }
-        if keyboard_input.pressed(KeyCode::Space) {
+        if keyboard_input.pressed(keybinds.move_up) {
             direction += Vec3::Y;
         }
-        if keyboard_input.pressed(KeyCode::ShiftLeft) {
+        if keyboard_input.pressed(keybinds.move_down) {
             direction -= Vec3::Y;
         }
         direction = direction.normalize_or_zero();
@@ -100,9 +108,6 @@ fn player_movement(
         player_transform.translation += direction * player_speed * time.delta_seconds();
     }
 }
-
-use bevy::window::PrimaryWindow;
-use bevy::window::CursorGrabMode;
 
 // Escape to grab cursor, then you can rotate the camera
 fn player_rotation(
@@ -135,10 +140,11 @@ fn player_rotation(
 
 fn grab_cursor(
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    keybinds: Res<KeyBindsResource>,
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
 ) {
     if let Ok(mut window) = window_query.get_single_mut() {
-        if keyboard_input.just_pressed(KeyCode::Escape) {
+        if keyboard_input.just_pressed(keybinds.grab_cursor) {
             match window.cursor.grab_mode {
                 CursorGrabMode::None => {
                     window.cursor.grab_mode = CursorGrabMode::Confined;
