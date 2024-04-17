@@ -1,6 +1,6 @@
 [package]
 name = "bevycraft"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 authors = ["Efima"]
 description = "Minecraft clone using bevy engine"
