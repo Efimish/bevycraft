@@ -1,6 +1,8 @@
 mod face;
 mod mesh;
 mod block;
+mod material;
+pub mod loader;
 use bevy::prelude::*;
 use face::Face;
 use mesh::new_mesh;
@@ -53,11 +55,14 @@ impl Default for MyChunk {
 }
 
 impl MyChunk {
-    fn flat() -> Self {
+    fn flat(level: usize) -> Self {
         let mut voxels = [Block::default(); CHUNK_LEN];
         for i in 0..Self::size() {
             let (_, y, _) = Self::delinearize(i);
-            if y <= 3 {
+            if y < level - 1 {
+                voxels[i] = Block::Stone;
+            }
+            else if y == level - 1 {
                 voxels[i] = Block::Dirt;
             }
         }
@@ -138,22 +143,22 @@ fn render_chunk(
     asset_server: Res<AssetServer>
 ) {
     let chunks = [
-        MyChunk::flat()
+        MyChunk::flat(1)
             .with_position(IVec3::new(0, 0, 0)),
-        MyChunk::flat()
+        MyChunk::flat(2)
             .with_position(IVec3::new(-1, 0, 0)),
-        MyChunk::flat()
+        MyChunk::flat(3)
             .with_position(IVec3::new(0, 0, -1)),
-        MyChunk::flat()
+        MyChunk::flat(4)
             .with_position(IVec3::new(-1, 0, -1)),
     ];
     for chunk in chunks {
         let faces = simple_mesh(&chunk);
     
-        let mut positions = Vec::new();
-        let mut indices = Vec::new();
-        let mut normals = Vec::new();
-        let mut uvs = Vec::new();
+        let mut positions = Vec::with_capacity(faces.len() * 4);
+        let mut indices = Vec::with_capacity(faces.len() * 6);
+        let mut normals = Vec::with_capacity(faces.len() * 4);
+        let mut uvs = Vec::with_capacity(faces.len() * 4);
     
         for face in faces {
             indices.extend_from_slice(&face.indices(positions.len() as u32));
@@ -164,7 +169,10 @@ fn render_chunk(
     
         let mesh = new_mesh(positions, indices, uvs, normals);
         let mesh_handle = meshes.add(mesh);
-        let texture = asset_server.load("dirt.png");
+        // let texture = asset_server.load("dirt.png");
+        let texture = asset_server.load("stone.png");
+        // let dirt_texture = asset_server.load("dirt.png");
+        // let stone_texture = asset_server.load("stone.png");
 
         let name = format!("Chunk at {}, {}, {}", chunk.position.x, chunk.position.y, chunk.position.z);
         commands.spawn((
@@ -179,6 +187,7 @@ fn render_chunk(
                     .with_translation(chunk.position.as_vec3() * MyChunk::SIDE as f32),
                 ..default()
             },
+            chunk,
             Name::new(name)
         ));
     }

@@ -11,6 +11,7 @@ use keybinds::KeyBindPlugin;
 use player::PlayerPlugin;
 use ui::GameUiPlugin;
 use chunk::SpawnChunkPlugin;
+use chunk::loader::ChunkPlugin;
 
 fn main() {
     App::new()
@@ -30,7 +31,8 @@ fn main() {
             KeyBindPlugin,
             PlayerPlugin,
             GameUiPlugin,
-            SpawnChunkPlugin
+            SpawnChunkPlugin,
+            ChunkPlugin
         ))
         .add_plugins(WireframePlugin)
         // .insert_resource(WireframeConfig {
